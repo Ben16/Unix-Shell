@@ -27,6 +27,9 @@ streq(char* str1, char* str2) {
 void
 execute(tree* t)
 {
+    if(streq(t->op, "=") && streq(svec_get(t->data, 0), "exit")) {
+	    exit(0);
+    }
     int cpid;
 
     if ((cpid = fork())) {
