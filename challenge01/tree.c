@@ -30,7 +30,7 @@ free_tree(tree* t) {
     }
     free(t->op);
     if (t->data != NULL) {
-	    svec_print(t->data);
+	    //svec_print(t->data);
 	    free_svec(t->data);
     }
     free(t);
