@@ -5,9 +5,25 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "tokens.h"
+#include "svec.h"
+#include "tree.h"
+
+/*
+ * Plan:
+ * with example: echo one two; echo three
+ * step 1: tokenize into list
+ * [echo, one, two, ;, echo, three]
+ * step 2: assemble tree
+ * Make leaves single command (list of tokens), parent is symbol
+ * [echo, one, two] / ; \ [echo, three]
+ * step 3: manage symbol
+ * step 4: recur on children
+ */
 void
 execute(char* cmd)
 {
+    svec* tokens = tokenize(cmd);
     int cpid;
 
     if ((cpid = fork())) {
@@ -64,7 +80,14 @@ main(int argc, char* argv[])
         memcpy(cmd, "echo", 5);
     }
 
-    execute(cmd);
+    svec* tokens = tokenize(cmd);
+
+    //convert to tree
+    tree* t = make_tree(tokens);
+    //execute(cmd);//take in tree
+    free_tree(t);
+
+    free_svec(tokens);
 
     return 0;
 }

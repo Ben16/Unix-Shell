@@ -77,7 +77,7 @@ tokenize(char* line) {
    }
 
 */
-int
+/*int
 main(int _argc, char* _argv[]) {
    //reading in lines heavily adapted from lecture code
    char line[100];
@@ -93,7 +93,7 @@ main(int _argc, char* _argv[]) {
       svec_print(tokens);
       free_svec(tokens);
    }
-}
+}*/
 
 
 

@@ -78,3 +78,15 @@ void svec_reverse(svec* sv)
 	data[sv->size - i - 1] = tmp;
     }
 }
+
+//I added this
+svec* svec_copy(svec* sv) {
+   if (sv == NULL) {
+      return NULL;
+   }
+   svec* rv = make_svec();
+   for(int i=0; i < sv->size; i++) {
+	svec_push_back(rv, svec_get(sv, i));
+   }
+   return rv;
+}
