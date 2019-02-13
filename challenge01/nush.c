@@ -30,6 +30,10 @@ execute(tree* t)
     if(streq(t->op, "=") && streq(svec_get(t->data, 0), "exit")) {
 	    exit(0);
     }
+    if(streq(t->op, "=") && streq(svec_get(t->data, 0), "cd")) {
+	    chdir(svec_get(t->data, 1));
+	    return;
+    }
     int cpid;
 
     if ((cpid = fork())) {
