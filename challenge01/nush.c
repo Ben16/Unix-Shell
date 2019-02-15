@@ -47,6 +47,45 @@ execute(tree* t)
 	return;
     }
 
+    if(streq(t->op, ">")) {
+	/*int pipes[2];
+	int rv = pipe(pipes);
+	if(rv == -1) {
+	       printf("Bad pipe stuff happened");
+	}*/
+	int cpid;
+	if((cpid = fork())) {
+	    //parent
+	    int status;
+	    waitpid(cpid, &status, 0);
+	} else {
+	    //child
+	    if(t->right == NULL) {
+		    printf("Right of tree should not be null");
+		    exit(1);
+	    }
+	    svec* cmd = t->right->data;
+	    if(cmd->size == 0) {
+		printf("You must redirect a file");
+		exit(1);
+	    }
+	    int fd = open(svec_get(cmd, 0), O_WRONLY | O_CREAT, 0666);
+	    
+	    //make output the file
+	    close(1);
+	    dup(fd);
+	    close(fd);
+
+	    execute(t->left);
+	    exit(0);
+	}	
+	return;
+    }
+
+    if(streq(t->op, "<")) {
+	//pipe, fork
+	return;
+    }
 
     int cpid;
 
@@ -84,7 +123,7 @@ execute(tree* t)
 
             //printf("== executed program's output: ==\n");
             execvp(svec_get(cmd, 0), args);
-            printf("Can't get here, exec only returns on error.");
+            //printf("Can't get here, exec only returns on error.");
 	}
     }
 }
