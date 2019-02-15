@@ -78,6 +78,35 @@ execute(tree* t)
     }
 
     if(streq(t->op, "<")) {
+	int cpid;
+	if((cpid = fork())) {
+	    //parent
+	    int status;
+	    waitpid(cpid, &status, 0);
+	} else {
+	    //child
+	    if(t->right == NULL) {
+		    printf("Right of tree should not be null");
+		    exit(1);
+	    }
+	    svec* cmd = t->right->data;
+	    if(cmd->size == 0) {
+		printf("You must redirect a file");
+		exit(1);
+	    }
+	    int fd = open(svec_get(cmd, 0), O_RDONLY);
+	    if(fd == -1) {
+		    printf("File for input not found.");
+	    }
+	    
+	    //make input the file
+	    close(0);
+	    dup(fd);
+	    close(fd);
+
+	    execute(t->left);
+	    exit(0);
+	}	
 	return;
     }
 
@@ -114,7 +143,8 @@ main(int argc, char* argv[])
     int offset = 0;
     if (argc != 1) {
 	int fd = open(argv[1], O_RDONLY);
-	read(fd, input, 256);
+	int nb = read(fd, input, 256);
+	input[nb] = 0;
 	close(fd);
     }
     while(1) {
@@ -142,7 +172,7 @@ main(int argc, char* argv[])
 		}
     	}
 
-    	svec* tokens = tokenize(cmd);
+    	 svec* tokens = tokenize(cmd);
    	 //convert to tree
    	 tree* t = make_tree(tokens);
    	 execute(t);//take in tree

@@ -34,7 +34,7 @@ make_tree(svec* sv) {
 
     ind = svec_ind_of(sv, "<");
     if(ind > -1) {//make tree around ind
-	t->op[0] = '>';
+	t->op[0] = '<';
 	t->op[1] = 0;
 	t->left = make_tree(svec_copy_partial_to(sv, ind));
 	t->right = make_tree(svec_copy_partial_from(sv, ind+1));
