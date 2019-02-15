@@ -2,3 +2,5 @@ nush
 *.o
 *.plist
 *.out
+*.tar.gz
+tmp
