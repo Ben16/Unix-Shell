@@ -1,3 +1,4 @@
 nush
 *.o
 *.plist
+*.out

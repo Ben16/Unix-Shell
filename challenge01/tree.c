@@ -12,13 +12,28 @@ tree*
 make_tree(svec* sv) {
     tree* t = malloc(sizeof(tree));
     t->op = malloc(3*sizeof(char));
-    t->left = malloc(sizeof(tree));
-    t->right = malloc(sizeof(tree));
     t->data = svec_copy(sv);
 
     //for now
+    int ind = svec_ind_of(sv, ";");
+    if(ind > -1) {//make tree around ind
+	t->op[0] = ';';
+	t->op[1] = 0;
+	t->left = make_tree(svec_copy_partial_to(sv, ind));
+	t->right = make_tree(svec_copy_partial_from(sv, ind+1));
+	return t;
+    }
+
+    //no operators
     t->op[0] = '=';
     t->op[1] = 0;
+    if(t->op[0] != '=') {
+        t->left = malloc(sizeof(tree));
+        t->right = malloc(sizeof(tree));
+    } else {
+	t->left = NULL;
+	t->right = NULL;
+    }
     return t;
 }
 

@@ -23,5 +23,8 @@ void svec_push_back(svec* sv, char* item);
 void svec_print(svec* sv);
 void svec_reverse(svec* sv);
 svec* svec_copy(svec* sv);
+svec* svec_copy_partial_to(svec* sv, int ub);
+svec* svec_copy_partial_from(svec* sv, int lb);
+int svec_ind_of(svec* sv, char* find);
 
 #endif

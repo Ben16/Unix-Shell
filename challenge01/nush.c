@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #include "tokens.h"
 #include "svec.h"
@@ -27,13 +28,26 @@ streq(char* str1, char* str2) {
 void
 execute(tree* t)
 {
-    if(streq(t->op, "=") && streq(svec_get(t->data, 0), "exit")) {
+    if(streq(t->op, "=")) {
+	if(t->data->size == 0) {
+	    return;
+        }
+        if(streq(t->op, "=") && streq(svec_get(t->data, 0), "exit")) {
 	    exit(0);
-    }
-    if(streq(t->op, "=") && streq(svec_get(t->data, 0), "cd")) {
+        }
+        if(streq(t->op, "=") && streq(svec_get(t->data, 0), "cd")) {
 	    chdir(svec_get(t->data, 1));
 	    return;
+        }
     }
+    
+    if(streq(t->op, ";")) {
+        execute(t->left);
+	execute(t->right);
+	return;
+    }
+
+
     int cpid;
 
     if ((cpid = fork())) {
@@ -57,31 +71,19 @@ execute(tree* t)
         // child process
         //printf("Child pid: %d\n", getpid());
         //printf("Child knows parent pid: %d\n", getppid());
-/*
-        for (int ii = 0; ii < strlen(cmd); ++ii) {
-            if (cmd[ii] == ' ') {
-                cmd[ii] = 0;
-                break;
-            }
-        }
-*/
-        // The argv array for the child.
-        // Terminated by a null pointer.
-	svec* cmd = t->data;
-	//svec_print(cmd);
-	//printf("\nhiiiiiiiiiii\n");
-        char* args[cmd->size + 1];
-	for(int i = 0; i < cmd->size; ++i) {
-		args[i] = svec_get(cmd, i);
-	}
-	args[cmd->size] = 0;
+	if(streq(t->op, "=")) {
+	    svec* cmd = t->data;
+	    if (cmd->size == 0) {
+	        exit(0);
+	    }
+            char* args[cmd->size + 1];
+	    for(int i = 0; i < cmd->size; ++i) {
+	       	    args[i] = svec_get(cmd, i);
+	    }
+	    args[cmd->size] = 0;
 
-        //printf("== executed program's output: ==\n");
-	if(streq(args[0], "exit")) {
-	    printf("In exit\n");
-	    exit(0);
-	} else {
-            execvp(args[0], args);
+            //printf("== executed program's output: ==\n");
+            execvp(svec_get(cmd, 0), args);
             printf("Can't get here, exec only returns on error.");
 	}
     }
@@ -102,11 +104,60 @@ main(int argc, char* argv[])
 		}
     	}
     	else {
-        	memcpy(cmd, "echo", 5);
+		/*fflush(stdout);
+		int argcounter = 1;
+		char* arg = argv[argcounter];
+		int j = 0;
+		cmd[255] = 0;
+		for(int i = 0; i < 255; ++i) {
+	 	    if(arg[j] == 0) {
+			j = 0;
+			++argcounter;
+			if(argcounter >= argc) {
+			    cmd[i] = 0;
+			    break;
+			}
+			arg = argv[argcounter];
+			cmd[i] = ' ';
+			continue;
+		    }
+		    cmd[i] = arg[j];
+		    ++j;
+		}*/
+		int fd = open(argv[1], O_RDONLY);
+		int count = read(fd, cmd, 256);
+		close(fd);
+		//printf("%s\n", cmd);
+		for (int i = 0; i < strlen(cmd); ++i) {
+		   //properly null terminate
+		   if(cmd[i] == '\n') {
+	 	       cmd[i] = 0;
+		   }
+		}
+    		/*char* current_num = malloc(4);
+    		for (int i=0; ; i++) {
+      		    long count = read(0, current_num+i, 1);
+       		    if (count == 0 || current_num[i] == '\n') {
+	   		current_num[i] = 0;
+	   		long num = atol(current_num);
+	   		push_vec(vv, num);
+           		break;
+       		    }
+       		    if (current_num[i] == ' ') {
+           		++space_count;
+	   		//change current_num to long and add to vec
+	   		long num = atol(current_num);
+	   		push_vec(vv, num);
+	   		for (int j=0; j < 4; j++) {
+               			current_num[j]=0;
+	   		}
+	   		i = -1;
+       		    }
+    		}*/
+	
     	}
 
     	svec* tokens = tokenize(cmd);
-
    	 //convert to tree
    	 tree* t = make_tree(tokens);
    	 execute(t);//take in tree

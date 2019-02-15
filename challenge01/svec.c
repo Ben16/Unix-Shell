@@ -90,3 +90,48 @@ svec* svec_copy(svec* sv) {
    }
    return rv;
 }
+
+//I added this
+svec* svec_copy_partial_to(svec* sv, int ub) {
+   if (sv == NULL) {
+      return NULL;
+   }
+   if (ub > sv->size) {
+	printf("You should not be copying more of the svec than exists...");
+	return svec_copy(sv);
+   }
+   svec* rv = make_svec();
+   for(int i=0; i < ub; i++) {
+	svec_push_back(rv, svec_get(sv, i));
+   }
+   return rv;
+}
+
+//I added this
+svec* svec_copy_partial_from(svec* sv, int lb) {
+   if (sv == NULL) {
+      return NULL;
+   }
+   if (lb > sv->size) {
+	printf("You should not be copying past the end of svec...");
+	return svec_copy(sv);
+   }
+   svec* rv = make_svec();
+   for(int i=lb; i < sv->size; i++) {
+	svec_push_back(rv, svec_get(sv, i));
+   }
+   return rv;
+}
+
+//I added this
+int svec_ind_of(svec* sv, char* find) {
+   if (sv == NULL) {
+      return -1;
+   }
+   for(int i=0; i < sv->size; i++) {
+	if (strcmp(svec_get(sv, i), find) == 0) {
+		return i;
+	}
+   }
+   return -1;
+}

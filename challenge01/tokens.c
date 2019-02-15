@@ -50,7 +50,7 @@ tokenize(char* line) {
 	    while (line[j] != 0 && line[j] != ' ' && line[j] != '\n'  && line[i] != '\t' && !(equal_token(line[j]))) {
                 ++j;
 	    }
-	    char* tok = malloc(j-i);
+	    char* tok = malloc(j-i+1);
 	    for (int k = 0; k < j-i; ++k) {
                 tok[k] = line[i+k];
 	    }
