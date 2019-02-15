@@ -92,6 +92,13 @@ execute(tree* t)
 int
 main(int argc, char* argv[])
 {
+    char input[256];
+    int offset = 0;
+    if (argc != 1) {
+	int fd = open(argv[1], O_RDONLY);
+	read(fd, input, 256);
+	close(fd);
+    }
     while(1) {
     	char cmd[256];
 
@@ -124,15 +131,21 @@ main(int argc, char* argv[])
 		    cmd[i] = arg[j];
 		    ++j;
 		}*/
-		int fd = open(argv[1], O_RDONLY);
-		int count = read(fd, cmd, 256);
-		close(fd);
 		//printf("%s\n", cmd);
-		for (int i = 0; i < strlen(cmd); ++i) {
-		   //properly null terminate
-		   if(cmd[i] == '\n') {
+		for (int i = 0; i < strlen(input)-offset+1; ++i) {
+		   if(input[i+offset] == '\n' || input[i+offset] == 0) {
 	 	       cmd[i] = 0;
+		       offset += i+1;
+		       break;
 		   }
+		   cmd[i] = input[offset+i];
+		   /*if(i == strlen(input)-offset-1) {
+			cmd[i+1] == 0;
+			offset = strlen(input);
+		   }*/
+		}
+		if(strlen(cmd) == 0) {
+		    exit(0);
 		}
     		/*char* current_num = malloc(4);
     		for (int i=0; ; i++) {
@@ -164,9 +177,6 @@ main(int argc, char* argv[])
    	 free_tree(t);
 
    	 free_svec(tokens);
-	 if(argc != 1) {
-	     exit(0);
-	 }
     }
     return 0;
 }
