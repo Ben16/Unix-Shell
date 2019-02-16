@@ -129,7 +129,32 @@ execute(tree* t)
     }
     
     if(streq(t->op, "&")) {
-	return 0;
+	int cpid;
+	if((cpid = fork())) {
+	    //parent
+	    if(t->right != NULL) {
+		return execute(t->right);
+	    }
+	    return 0;
+	} else {
+	    //child
+	    if(t->left == NULL) {
+		    printf("Left of tree should not be null");
+		    exit(1);
+	    }
+	    svec* cmd = t->left->data;
+	    if(cmd->size == 0) {
+		printf("You must background a command");
+		exit(1);
+	    }
+	    int st = execute(t->left);
+	    exit(st);
+	}	
+	int rv = execute(t->left);
+	if (rv == 0) {
+	    return execute(t->right);
+	}
+	return rv;
     }
     int cpid;
 
