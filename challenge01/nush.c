@@ -125,7 +125,46 @@ execute(tree* t)
     }
     
     if(streq(t->op, "|")) {
-	return 0;
+	int cpid;
+	if((cpid = fork())) {
+	    //parent
+	    int status;
+	    waitpid(cpid, &status, 0);
+	    return status;
+	} else {
+	    //child
+	    int pipes[2];
+	    int rv = pipe(pipes);
+	    if (rv == -1) {
+		printf("Pipe making went wrong");
+	    }
+	    int child_cpid;
+	    if((child_cpid = fork())) {
+		//parent
+		close(pipes[1]);
+		//use read end of pipe
+		close(0);
+		dup(pipes[0]);
+		close(pipes[0]);
+
+		execute(t->right);
+		int child_status;
+		waitpid(child_cpid, &child_status, 0);
+		int st = child_status;
+		exit(st);
+	    } else {
+		//child
+		close(pipes[0]);
+		//use write end of pipe
+		close(1);
+		dup(pipes[1]);
+		close(pipes[1]);
+
+		int st = execute(t->left);
+		exit(st);
+	    }
+
+	}
     }
     
     if(streq(t->op, "&")) {
