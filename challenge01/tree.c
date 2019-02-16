@@ -51,6 +51,14 @@ make_tree(svec* sv) {
     if (strcmp(t->op, "||") == 0) {
 	return t;
     }
+    check_tok(t, "|");
+    if (strcmp(t->op, "|") == 0) {
+	return t;
+    }
+    check_tok(t, "&");
+    if (strcmp(t->op, "&") == 0) {
+	return t;
+    }
 
     return t;
 }

@@ -109,29 +109,28 @@ execute(tree* t)
     }
     
     if(streq(t->op, "&&")) {
-	int cpid;
-	if((cpid = fork())) {
-	    //parent
-	    int status;
-	    waitpid(cpid, &status, 0);
-	    return status;
-	} else {
-	    //child
-	    if(t->right == NULL) {
-		    printf("Right of tree should not be null");
-		    exit(1);
-	    }
-	    svec* cmd = t->right->data;
-	    if(cmd->size == 0) {
-		printf("You must redirect a file");
-		exit(1);
-	    }
-	    
-	    int st = execute(t->left);
-	    exit(st);
-	}	
+	int rv = execute(t->left);
+	if (rv == 0) {
+	    return execute(t->right);
+	}
+	return rv;
     }
 
+    if(streq(t->op, "||")) {
+	int rv = execute(t->left);
+	if (rv != 0) {
+	    return execute(t->right);
+	}
+	return rv;
+    }
+    
+    if(streq(t->op, "|")) {
+	return 0;
+    }
+    
+    if(streq(t->op, "&")) {
+	return 0;
+    }
     int cpid;
 
     if ((cpid = fork())) {
