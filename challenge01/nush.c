@@ -25,26 +25,24 @@ streq(char* str1, char* str2) {
  * step 3: manage symbol
  * step 4: recur on children
  */
-void
+int //returns exit status
 execute(tree* t)
 {
     if(streq(t->op, "=")) {
 	if(t->data->size == 0) {
-	    return;
+	    return 0;
         }
         if(streq(t->op, "=") && streq(svec_get(t->data, 0), "exit")) {
 	    exit(0);
         }
         if(streq(t->op, "=") && streq(svec_get(t->data, 0), "cd")) {
-	    chdir(svec_get(t->data, 1));
-	    return;
+	    return chdir(svec_get(t->data, 1));
         }
     }
     
     if(streq(t->op, ";")) {
         execute(t->left);
-	execute(t->right);
-	return;
+	return execute(t->right);
     }
 
     if(streq(t->op, ">")) {
@@ -53,6 +51,7 @@ execute(tree* t)
 	    //parent
 	    int status;
 	    waitpid(cpid, &status, 0);
+	    return status;
 	} else {
 	    //child
 	    if(t->right == NULL) {
@@ -71,10 +70,9 @@ execute(tree* t)
 	    dup(fd);
 	    close(fd);
 
-	    execute(t->left);
-	    exit(0);
+	    int st = execute(t->left);
+	    exit(st);
 	}	
-	return;
     }
 
     if(streq(t->op, "<")) {
@@ -83,6 +81,7 @@ execute(tree* t)
 	    //parent
 	    int status;
 	    waitpid(cpid, &status, 0);
+	    return status;
 	} else {
 	    //child
 	    if(t->right == NULL) {
@@ -104,10 +103,33 @@ execute(tree* t)
 	    dup(fd);
 	    close(fd);
 
-	    execute(t->left);
-	    exit(0);
+	    int st = execute(t->left);
+	    exit(st);
 	}	
-	return;
+    }
+    
+    if(streq(t->op, "&&")) {
+	int cpid;
+	if((cpid = fork())) {
+	    //parent
+	    int status;
+	    waitpid(cpid, &status, 0);
+	    return status;
+	} else {
+	    //child
+	    if(t->right == NULL) {
+		    printf("Right of tree should not be null");
+		    exit(1);
+	    }
+	    svec* cmd = t->right->data;
+	    if(cmd->size == 0) {
+		printf("You must redirect a file");
+		exit(1);
+	    }
+	    
+	    int st = execute(t->left);
+	    exit(st);
+	}	
     }
 
     int cpid;
@@ -116,6 +138,7 @@ execute(tree* t)
         // parent process
         int status;
         waitpid(cpid, &status, 0);
+	return status;
     }
     else {
         // child process

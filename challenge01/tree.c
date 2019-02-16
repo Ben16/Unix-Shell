@@ -1,56 +1,57 @@
+#include <string.h>
+#include <stdio.h>
+
 #include "tree.h"
 #include "svec.h"
 
-/*typedef struct tree {
-    char* op;//= will represent no operator
-    tree* left;
-    tree* right;
-    svec* data;
-} tree;*/
-
+void
+check_tok(tree* t, char* sym) {
+    if (strlen(sym) > 2) {
+	printf("check_tok should only be used on one or two char shell tokens");
+    }
+    int ind;
+    ind = svec_ind_of(t->data, sym);
+    if(ind > -1) {//make tree around ind
+	t->op[0] = sym[0];
+	t->op[1] = sym[1];//in a one-char string, this will be null terminator
+	t->op[2] = 0;
+	t->left = make_tree(svec_copy_partial_to(t->data, ind));
+	t->right = make_tree(svec_copy_partial_from(t->data, ind+1));
+    }
+}
 tree* 
 make_tree(svec* sv) {
     tree* t = malloc(sizeof(tree));
     t->op = malloc(3*sizeof(char));
     t->data = svec_copy(sv);
 
-    int ind = svec_ind_of(sv, ";");
-    if(ind > -1) {//make tree around ind
-	t->op[0] = ';';
-	t->op[1] = 0;
-	t->left = make_tree(svec_copy_partial_to(sv, ind));
-	t->right = make_tree(svec_copy_partial_from(sv, ind+1));
-	return t;
-    }
-
-    ind = svec_ind_of(sv, ">");
-    if(ind > -1) {//make tree around ind
-	t->op[0] = '>';
-	t->op[1] = 0;
-	t->left = make_tree(svec_copy_partial_to(sv, ind));
-	t->right = make_tree(svec_copy_partial_from(sv, ind+1));
-	return t;
-    }
-
-    ind = svec_ind_of(sv, "<");
-    if(ind > -1) {//make tree around ind
-	t->op[0] = '<';
-	t->op[1] = 0;
-	t->left = make_tree(svec_copy_partial_to(sv, ind));
-	t->right = make_tree(svec_copy_partial_from(sv, ind+1));
-	return t;
-    }
-
-    //no operators
+    //base case
     t->op[0] = '=';
     t->op[1] = 0;
-    if(t->op[0] != '=') {
-        t->left = malloc(sizeof(tree));
-        t->right = malloc(sizeof(tree));
-    } else {
-	t->left = NULL;
-	t->right = NULL;
+    t->left = NULL;
+    t->right = NULL;
+    
+    check_tok(t, ";");
+    if (strcmp(t->op, ";") == 0) {
+	return t;
     }
+    check_tok(t, "<");
+    if (strcmp(t->op, "<") == 0) {
+	return t;
+    }
+    check_tok(t, ">");
+    if (strcmp(t->op, ">") == 0) {
+	return t;
+    }
+    check_tok(t, "&&");
+    if (strcmp(t->op, "&&") == 0) {
+	return t;
+    }
+    check_tok(t, "||");
+    if (strcmp(t->op, "||") == 0) {
+	return t;
+    }
+
     return t;
 }
 
